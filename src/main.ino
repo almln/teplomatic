@@ -29,6 +29,7 @@ DallasTemperature t_sensor(&oneWire);
 // setup stepper
 AccelStepper stepper = AccelStepper(motorInterfaceType, stepPin, dirPin);
 
+// perform a calibration of the operational range
 void setup() {
   Serial.begin(9600);
 
@@ -64,8 +65,8 @@ void setup() {
     }
     stepper.runSpeed();
   }
-
 }
+
 void loop() {
   // Send the command to get temperature readings 
   t_sensor.requestTemperatures();
@@ -75,7 +76,7 @@ void loop() {
   // read temperature
   float t = t_sensor.getTempCByIndex(0);
 
-  // calculate position by linear interpolation
+  // calculate position by the linear interpolation
   int x = int((t - MIN_T) / (MAX_T - MIN_T) * MAX_X);
 
   Serial.print("go to x: ");
