@@ -9,7 +9,7 @@
 #define motorInterfaceType 1
 
 // temperature sensor pin
-#define ONE_WIRE_BUS 7
+#define ONE_WIRE_BUS 8
 
 // button pins
 #define BUTTON_CLOSE_PIN 4
@@ -18,6 +18,9 @@
 // temperature limits
 #define MIN_T 17
 #define MAX_T 25
+
+// Speed value
+#define SPEED 600
 
 // Here will be stepper max position after the interval calibration
 int MAX_X = 0;
@@ -42,7 +45,7 @@ void setup() {
 
   // Set the maximum speed in steps per second:
   stepper.setMaxSpeed(1000);
-  stepper.setSpeed(-400);
+  stepper.setSpeed(SPEED);
   // go backward and find zero position
   while (1) {
     bool is_button_pressed = digitalRead(BUTTON_CLOSE_PIN);
@@ -55,7 +58,7 @@ void setup() {
   }
 
   // go forward and find max position
-  stepper.setSpeed(400);
+  stepper.setSpeed(-SPEED);
   while (1) {
     bool is_button_pressed = digitalRead(BUTTON_OPEN_PIN);
     if (is_button_pressed == LOW) {
@@ -69,19 +72,40 @@ void setup() {
 
 void loop() {
   // Send the command to get temperature readings 
-  t_sensor.requestTemperatures();
+  float t = 85.0;
+  while (t > 84 || t < -100) {
+    t_sensor.requestTemperatures();
+    delay(1000);
+    t = t_sensor.getTempCByIndex(0);
+    delay(1000);
+    // read temperature
+    Serial.print("got t: ");
+    Serial.println(t);
+  }
   
-  delay(1000);
   
-  // read temperature
-  float t = t_sensor.getTempCByIndex(0);
 
   // calculate position by the linear interpolation
+  if (t < MIN_T) {
+    t = MIN_T;
+  }
+  if (t > MAX_T) {
+    t = MAX_T;
+  }
+
   int x = int((t - MIN_T) / (MAX_T - MIN_T) * MAX_X);
+  
+  Serial.print("Max position: ");
+  Serial.println(MAX_X);
 
   Serial.print("go to x: ");
-  Serial.println(x);
+  Serial.println(x);  
 
   // actuate
-  stepper.runToNewPosition(x);
+  stepper.moveTo(x);
+  stepper.setSpeed(SPEED);
+  while(stepper.currentPosition() != x) 
+  {
+    stepper.runSpeedToPosition();
+  }
 }
