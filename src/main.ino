@@ -49,7 +49,7 @@ void setup() {
   // go backward and find zero position
   while (1) {
     bool is_button_pressed = digitalRead(BUTTON_CLOSE_PIN);
-    if (is_button_pressed == LOW) {
+    if (is_button_pressed == HIGH) {
       Serial.println("Close button pressed");
       stepper.setCurrentPosition(0);
       break;
@@ -61,7 +61,7 @@ void setup() {
   stepper.setSpeed(-SPEED);
   while (1) {
     bool is_button_pressed = digitalRead(BUTTON_OPEN_PIN);
-    if (is_button_pressed == LOW) {
+    if (is_button_pressed == HIGH) {
       Serial.println("Open button pressed");
       MAX_X = stepper.currentPosition();
       Serial.print("Max position: ");
